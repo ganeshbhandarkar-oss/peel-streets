@@ -1,0 +1,24 @@
+{
+  "name": "peel-streets",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Peel Streets - a hybrid-casual sticker-peeling city puzzle prototype",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --port 4173 --strictPort",
+    "test": "vitest run",
+    "validate": "tsx scripts/validate-levels.ts",
+    "screenshots": "node scripts/screenshots.mjs",
+    "e2e": "node scripts/e2e-smoke.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "playwright-core": "^1.65.0",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "vite": "^6.4.6",
+    "vitest": "^3.2.7"
+  }
+}

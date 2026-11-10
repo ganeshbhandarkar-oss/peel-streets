@@ -1,0 +1,202 @@
+[
+  {"id":1, "name":"First Peel", "district":0, "par":1, "moves":3, "tip":"Drag the loose road sticker into the gap.", "hint":[1,2,2,2],
+   "rows": [
+     "#      #      #      #      #",
+     "#      #      rI1    #      #",
+     "S:r:E  rI1    .      rI1    D:r:W",
+     "#      #      #      #      #",
+     "#      #      #      #      #"
+   ]},
+  {"id":2, "name":"Turn It Around", "district":0, "par":1, "moves":3, "tip":"Tap a sticker to peel it, rotate it, then tap the same spot to stick it back.",
+   "rows": [
+     "#      #      #      #      #",
+     "#      #      #      #      #",
+     "S:r:E  rI1    rI0    rI1    D:r:W",
+     "#      #      #      #      #",
+     "#      #      #      #      #"
+   ]},
+  {"id":3, "name":"Corner Store", "district":0, "par":2, "moves":4, "tip":"Corners need the right turn too.",
+   "rows": [
+     "#      #      #      #      #",
+     "S:r:E  rL0    #      #      #",
+     "#      rI0    #      #      #",
+     "#      rL2    rI1    D:r:W  #",
+     "#      #      #      #      #"
+   ]},
+  {"id":4, "name":"Spare Parts", "district":0, "par":3, "moves":5, "tip":"Loose stickers can go anywhere there's an empty lot.",
+   "rows": [
+     "#      #      #      #      #",
+     "S:r:E  .      .      rL1    #",
+     "#      #      #      rI0    #",
+     "rI0    #      #      rI0    #",
+     "rI0    #      #      D:r:N  #"
+   ]},
+  {"id":5, "name":"Litter Pickup", "district":0, "par":2, "moves":4, "tip":"Litter hides what's underneath. Peel it and stash it in an empty lot.",
+   "rows": [
+     "#      #      #      #      #",
+     "S:r:E  rI1    rI0/j  rI1    D:r:W",
+     "#      .      #      #      #",
+     "#      #      #      #      #"
+   ]},
+  {"id":6, "name":"Mirror Mirror", "district":0, "par":2, "moves":4, "tip":"Striped stickers are stiff: they can't rotate, but you can flip them over.",
+   "rows": [
+     "#      #      #      #      #",
+     "#      S:r:S  #      #      #",
+     "#      rL3!   rI1    rL1!   #",
+     "#      #      #      rI0    #",
+     "#      #      #      D:r:N  #"
+   ]},
+  {"id":7, "name":"Back Alley", "district":0, "par":3, "moves":5,
+   "rows": [
+     "S:r:E  rI1    rL0    #      #",
+     "#      #      rI0/j  .      #",
+     "#      rL1!   rL0!   #      #",
+     "#      rI0    .      .      #",
+     "#      D:r:N  #      #      #"
+   ]},
+  {"id":8, "name":"Harbor Crossroads", "district":0, "par":4, "moves":6, "tip":"A crossing joins two streets. Both garages need a way home.",
+   "rows": [
+     "#        #      #        #      #       #",
+     "S:r:E:0  rI0    rL2      .      #       #",
+     "#        #      rI0      #      #       #",
+     "D:r:E:1  .      rI0      rI1    rI1/j   S:r:W:1",
+     "#        #      D:r:N:0  #      rX      #",
+     "#        #      #        #      #       #"
+   ]},
+  {"id":9, "name":"Tram Time", "district":1, "par":2, "moves":4, "tip":"Trams only ride rails. Roads only take cars.",
+   "rows": [
+     "#      #      #      #      #",
+     "S:t:E  tI1    tI0    tI1    D:t:W",
+     "#      #      #      #      #",
+     "S:r:E  rI1    .      rI1    D:r:W",
+     "#      #      rI1    #      #"
+   ]},
+  {"id":10, "name":"Mixed Up", "district":1, "par":3, "moves":5, "tip":"Someone stuck the wrong stickers on. Use the empty lot to swap them.",
+   "rows": [
+     "S:t:E  tI1    rI1    tL2    #",
+     "#      #      #      tI0    #",
+     "#      #      .      D:t:N  #",
+     "S:r:E  rI1    tI1    rI1    D:r:W"
+   ]},
+  {"id":11, "name":"Pinned Down", "district":1, "par":4, "moves":6, "tip":"Pinned stickers can't be peeled. Find a way around.",
+   "rows": [
+     "#      #      #      #      #",
+     "S:r:E  rI1    rI0@   rI1    D:r:W",
+     "#      .      rL0/rL0  .    #",
+     "#      rL0    rI1    rL3    #",
+     "#      #      #      #      #"
+   ]},
+  {"id":12, "name":"Junction", "district":1, "par":3, "moves":5, "tip":"A T-piece works as a corner if the extra arm points at a wall.",
+   "rows": [
+     "S:r:E  rI0    rI1    rI1    D:r:W",
+     "S:t:E  tI1    .      #      #",
+     "#      #      tI0    #      #",
+     "#      #      .      tI1    D:t:W",
+     "tT0    #      #      #      tT1"
+   ]},
+  {"id":13, "name":"Overpass", "district":1, "par":3, "moves":5, "tip":"Bridge stickers carry a road over a rail line.",
+   "rows": [
+     "rI1+tI0  .      S:r:S  #      #",
+     "#        #      rI0    #      #",
+     "S:t:E    tI0    .      tI1    D:t:W",
+     "#        #      rI0/j  #      #",
+     "#        #      D:r:N  #      #"
+   ]},
+  {"id":14, "name":"Flip Market", "district":1, "par":3, "moves":5,
+   "rows": [
+     "#      #       #      #      #",
+     "S:t:E  tL2!    #      tL1!   #",
+     "#      tI0/j   #      #      #",
+     "#      tL3!    tI1    .      #",
+     "#      #       #      tI0    #",
+     "#      #       #      D:t:N  #"
+   ]},
+  {"id":15, "name":"Rush Hour", "district":1, "par":5, "moves":7,
+   "rows": [
+     "#      #      #      #            #      #",
+     "S:t:E  tI0    tI1    tL0          .      #",
+     "#      #      #      .            #      #",
+     "S:r:E  rI1    .      rI1+tI0/tI0  rI1    D:r:W",
+     "#      #      #      tI0          #      #",
+     "rI0/j  .      #      D:t:N        #      #"
+   ]},
+  {"id":16, "name":"Market Day", "district":1, "par":6, "moves":8, "tip":"Pinned crossings never move. Build around them.",
+   "rows": [
+     "S:t:E    tI0    tL2          #       #        #",
+     "#        #      tI0          #       S:r:S:1  #",
+     "S:r:E:0  rI1    rI1+tI0/tI0  rI0     rX@      D:r:W:1",
+     "#        .      .            rI1/j   .        #",
+     "D:t:E    tI1    tL0!         #       D:r:N:0  #"
+   ]},
+  {"id":17, "name":"Water Works", "district":2, "par":2, "moves":4, "tip":"Pipes carry water from the tower. Peeling a sticker shows what's under it.",
+   "rows": [
+     "#      #      #        #      #",
+     "S:p:E  pI1    pL1      #      #",
+     "#      #      pI0/pL1  #      #",
+     "#      #      .        pI1    D:p:W",
+     "#      #      #        #      #"
+   ]},
+  {"id":18, "name":"Dig Deep", "district":2, "par":4, "moves":6, "tip":"Thick stacks can hide the piece you need at the bottom.",
+   "rows": [
+     "#      S:p:S      #      #        #",
+     "#      pI0        .      .        #",
+     "#      pL0/pI0/j  pI0    pL2/pD1  #",
+     "#      #          #      .        #",
+     "#      #          #      D:p:N    #"
+   ]},
+  {"id":19, "name":"Rubble Trouble", "district":2, "par":4, "moves":6, "tip":"Grey edges mean rubble below. Rubble lots can't take stickers.",
+   "rows": [
+     "#      #        #      #        #",
+     "S:p:E  pL2/pI1  x/j    pL1/pI1  D:p:W",
+     "#      .        pI1    .        #",
+     "#      pL1      .      pL2      #",
+     "#      #        #      #        #"
+   ]},
+  {"id":20, "name":"Three Lines", "district":2, "par":5, "moves":7,
+   "rows": [
+     "S:r:E  rI1@   rI1@         rL1    #      #",
+     "S:t:E  tI0    tL2@         rI0@   #      #",
+     "#      #      tI0          rL0    rI1/j  D:r:W",
+     "S:p:E  pI1@   tI0+pI1/tI0  pI1    pL1!   #",
+     "#      .      .            .      pI0    #",
+     "#      #      D:t:N        #      D:p:N  #"
+   ]},
+  {"id":21, "name":"Deep Pipes", "district":2, "par":5, "moves":7,
+   "rows": [
+     "#      S:p:S:0  #      #        #",
+     "#      pI0/pL1  #      S:p:S:1  #",
+     "#      .        pI1/j  pX@      pL1!",
+     "x/j    .        .      pI0/pI1  pI1",
+     "#      #        #      D:p:N:1  D:p:N:0"
+   ]},
+  {"id":22, "name":"Skyline Express", "district":2, "par":6, "moves":8,
+   "rows": [
+     "S:t:E  tI1@   tI1@   tL1      .      #",
+     "#      .      #      tI0@     #      #",
+     "S:r:E  rI0    rI1@   tI0+pI1  rI1@   D:r:W",
+     "#      #      .      tI0@     #      #",
+     "S:p:E  pI1@   pI1@   rI1+tI0  pI1@   D:p:W",
+     "#      #      #      tI0/j    .      #",
+     "#      #      #      D:t:N    #      #"
+   ]},
+  {"id":23, "name":"Rooftop Run", "district":2, "par":6, "moves":8,
+   "rows": [
+     "#      #       S:p:S  #      #        #",
+     "S:r:E  rL1!    pI0@   #      .        #",
+     "#      rI0@    pL0@   pI1@   pL3      #",
+     ".      rI0/rL0 #      x/j    pI0@     #",
+     "#      .       rI1/j  rI1@   rI0+pI1  D:r:W",
+     "#      #       pI1    #      .        #",
+     "#      #       #      #      D:p:N    #"
+   ]},
+  {"id":24, "name":"Grand Reopening", "district":2, "par":7, "moves":9, "tip":"The grand finale: every line in the city, all at once.",
+   "rows": [
+     "S:t:E    tI0    tL2@     #      S:r:S:1  #",
+     "#        .      tI0@     #      rI0@     #",
+     "S:r:E:0  rI1@   rI0+pI1  rI1@   rX@      D:r:W:0",
+     "#        .      tI0@     .      rI0/j    #",
+     "D:t:E    tI1@   tL0!     pL3    rI1+tI0  S:p:W",
+     "#        #      #        pI0@   rI0@     #",
+     "#        #      #        D:p:N  D:r:N:1  #"
+   ]}
+]
