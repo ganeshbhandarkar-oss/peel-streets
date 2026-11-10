@@ -1,5 +1,7 @@
 # Peel Streets
 
+**Play:** https://ganeshbhandarkar-oss.github.io/peel-streets/
+
 A hybrid-casual mobile puzzle prototype that runs in the browser. The city is a grid of **sticker tiles**: roads, tram rails and water pipes. You **peel** a sticker off (its corner curls up under your finger), **rotate or flip** it, and **snap** it onto an empty lot. When every garage, tram depot and water tower connects to its matching house, tram stop or fountain, cars, trams and water run along the new route and a building in the district is restored.
 
 All art is drawn in code (Canvas 2D and inline SVG) and every sound is synthesised with WebAudio. There are no image, audio or font files, and no third-party assets or characters. Ads are **mocked**.
@@ -40,7 +42,7 @@ The e2e and screenshot scripts use `playwright-core` with a system Chrome (`/usr
 
 **QA hooks:** `?level=N` opens a level directly. `?unlock=1` (or Settings → *QA: unlock all levels*) opens every level. In DevTools, `peelDebug.play(n)`, `peelDebug.step()`, `peelDebug.solve()` and `peelDebug.state()` are available, and analytics-style events (`level_start`, `level_complete`, `level_fail`, `hint_used`, `undo`, `ad_shown_mock`, `ad_rewarded_mock`) are pushed to `window.__peelEvents`.
 
-**Deploy:** `.github/workflows/deploy.yml` runs tests, runs the validator, builds, and publishes `dist/` to GitHub Pages. The Vite `base` is `/peel-streets/`, so the repo should be named `peel-streets`. Nothing has been pushed anywhere.
+**Deploy:** `.github/workflows/deploy.yml` runs tests, runs the validator, builds, and publishes `dist/` to GitHub Pages at https://ganeshbhandarkar-oss.github.io/peel-streets/. The Vite `base` is `/peel-streets/`, so the repo should be named `peel-streets`.
 
 ## Project structure
 
