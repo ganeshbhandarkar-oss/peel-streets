@@ -1,7 +1,7 @@
 import { cellAt, idx, topLayer } from '../engine/grid';
 import { segmentsKey } from '../engine/pieces';
 import type { Board, PathType, Pos, Segment, Sticker } from '../engine/types';
-import { drawBlock, drawEndpoint, drawLayer, drawLot, drawSticker, layerTint, roundRect } from './art';
+import { drawBlock, drawBlockLife, drawEndpoint, drawLot, drawRubble, drawSticker, layerTint, paintBackdrop, roundRect } from './art';
 import { PAL } from './palette';
 
 export interface PeelAnim {
@@ -44,7 +44,7 @@ interface Runner {
   delay: number;
 }
 
-const CONFETTI = ['#ff8fab', '#ffd166', '#6ee7b7', '#7dd3fc', '#c4b5fd', '#ffffff'];
+const CONFETTI = ['#f29ab0', '#f0c84a', '#7dcea0', '#8fd0e8', '#e7c6a2', '#ffffff'];
 
 export class BoardView {
   canvas: HTMLCanvasElement;
@@ -56,6 +56,9 @@ export class BoardView {
   ox = 0;
   oy = 0;
   board: Board | null = null;
+  /** Level id + district drive cached decor. Gameplay never reads these. */
+  scene = 0;
+  district = 0;
 
   peel: PeelAnim | null = null;
   held: Held | null = null;
@@ -72,8 +75,22 @@ export class BoardView {
 
   private cache = new Map<string, HTMLCanvasElement>();
   private decorCache = new Map<string, HTMLCanvasElement>();
+  private groundCanvas: HTMLCanvasElement | null = null;
+  private groundKey = '';
+  private lotCanvas: HTMLCanvasElement | null = null;
+  private lotKey = '';
+  private spriteDpr = 0;
   private raf = 0;
   private running = false;
+
+  setScene(levelId: number, district: number) {
+    if (this.scene === levelId && this.district === district) return;
+    this.scene = levelId;
+    this.district = district;
+    this.decorCache.clear();
+    this.groundKey = '';
+    this.lotKey = '';
+  }
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -101,9 +118,12 @@ export class BoardView {
     if (!this.board) return;
     const pad = 16;
     const size = Math.floor(Math.min((this.w - pad * 2) / this.board.w, (this.h - pad * 2) / this.board.h, 92));
-    if (size !== this.cell) {
+    if (size !== this.cell || this.dpr !== this.spriteDpr) {
       this.cache.clear();
       this.decorCache.clear();
+      this.groundKey = '';
+      this.lotKey = '';
+      this.spriteDpr = this.dpr;
     }
     this.cell = size;
     this.ox = Math.floor((this.w - size * this.board.w) / 2);
@@ -262,7 +282,8 @@ export class BoardView {
   }
 
   private decor(i: number, kind: string, draw: (g: CanvasRenderingContext2D, s: number) => void): HTMLCanvasElement {
-    const key = `${kind}|${i}|${this.cell}`;
+    const b = this.board;
+    const key = `${this.scene}|${this.district}|${b ? b.w + 'x' + b.h : ''}|${kind}|${i}|${this.cell}|${this.dpr}`;
     let c = this.decorCache.get(key);
     if (!c) {
       c = document.createElement('canvas');
@@ -272,6 +293,37 @@ export class BoardView {
       draw(g, this.cell);
       this.decorCache.set(key, c);
     }
+    return c;
+  }
+
+  private groundSprite(b: Board): HTMLCanvasElement {
+    const pad = 14;
+    const key = `${b.w}x${b.h}|${this.cell}|${this.dpr}|${this.district}|${pad}`;
+    if (this.groundCanvas && this.groundKey === key) return this.groundCanvas;
+    const w = this.cell * b.w + pad * 2;
+    const h = this.cell * b.h + pad * 2;
+    const c = document.createElement('canvas');
+    c.width = Math.ceil(w * this.dpr);
+    c.height = Math.ceil(h * this.dpr);
+    const g = c.getContext('2d')!;
+    g.scale(this.dpr, this.dpr);
+    paintBackdrop(g, w, h, this.district, b.w, b.h, this.cell, pad);
+    this.groundCanvas = c;
+    this.groundKey = key;
+    return c;
+  }
+
+  private lotSprite(): HTMLCanvasElement {
+    const key = `${this.cell}|${this.dpr}|${this.district}`;
+    if (this.lotCanvas && this.lotKey === key) return this.lotCanvas;
+    const s = this.cell;
+    const c = document.createElement('canvas');
+    c.width = c.height = Math.ceil(s * this.dpr);
+    const g = c.getContext('2d')!;
+    g.scale(this.dpr, this.dpr);
+    drawLot(g, s, this.district);
+    this.lotCanvas = c;
+    this.lotKey = key;
     return c;
   }
 
@@ -285,26 +337,9 @@ export class BoardView {
     ctx.save();
     if (this.shakeAmp > 0) ctx.translate((Math.random() - 0.5) * this.shakeAmp * 2, (Math.random() - 0.5) * this.shakeAmp * 2);
 
-    // board panel
-    ctx.fillStyle = 'rgba(84,60,40,0.10)';
-    roundRect(ctx, this.ox - 8, this.oy - 4, s * b.w + 16, s * b.h + 16, 22);
-    ctx.fill();
-    ctx.fillStyle = PAL.ground;
-    roundRect(ctx, this.ox - 8, this.oy - 8, s * b.w + 16, s * b.h + 16, 22);
-    ctx.fill();
-    // subtle paving grid
-    ctx.strokeStyle = PAL.groundLine;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    for (let r = 1; r < b.h; r++) {
-      ctx.moveTo(this.ox, this.oy + r * s);
-      ctx.lineTo(this.ox + b.w * s, this.oy + r * s);
-    }
-    for (let c = 1; c < b.w; c++) {
-      ctx.moveTo(this.ox + c * s, this.oy);
-      ctx.lineTo(this.ox + c * s, this.oy + b.h * s);
-    }
-    ctx.stroke();
+    const pad = 14;
+    const ground = this.groundSprite(b);
+    ctx.drawImage(ground, this.ox - pad, this.oy - pad, s * b.w + pad * 2, s * b.h + pad * 2);
 
     const heldI = this.held ? idx(b, this.held.origin.r, this.held.origin.c) : -1;
     const peelI = this.peel ? idx(b, this.peel.pos.r, this.peel.pos.c) : -1;
@@ -317,12 +352,17 @@ export class BoardView {
         const x = this.ox + c * s;
         const y = this.oy + r * s;
         if (cell.kind === 'block') {
-          ctx.drawImage(this.decor(i, 'block', (g, sz) => drawBlock(g, sz, i + b.w * 31)), x, y, s, s);
+          const seed = i + b.w * 31;
+          ctx.drawImage(this.decor(i, 'block', (g, sz) => drawBlock(g, sz, seed, this.district)), x, y, s, s);
+          ctx.save();
+          ctx.translate(x, y);
+          drawBlockLife(ctx, s, seed, now, this.district);
+          ctx.restore();
           continue;
         }
         if (cell.kind === 'source' || cell.kind === 'dest') {
           const lit = this.solved;
-          ctx.drawImage(this.decor(i, 'ep' + (lit ? 'L' : ''), (g, sz) => drawEndpoint(g, cell, sz, lit)), x, y, s, s);
+          ctx.drawImage(this.decor(i, 'ep' + (lit ? 'L' : ''), (g, sz) => drawEndpoint(g, cell, sz, lit, this.district)), x, y, s, s);
           continue;
         }
         // ground stack
@@ -331,18 +371,19 @@ export class BoardView {
         const peeling = i === peelI;
         const visibleTopIdx = stack.length - 1;
         if (stack.length === 0 || (peeling && stack.length === 1)) {
-          ctx.save();
-          ctx.translate(x, y);
-          drawLot(ctx, s);
-          ctx.restore();
+          ctx.drawImage(this.lotSprite(), x, y, s, s);
         }
         // plates for buried layers (edge clue): peek out at the bottom edge
         const buried = peeling ? stack.length - 2 : stack.length - 1;
         for (let k = 0; k < buried; k++) {
           const depth = buried - k;
+          const peek = Math.min(5, Math.max(3, s * 0.055));
           ctx.fillStyle = layerTint(stack[k]);
-          roundRect(ctx, x + s * 0.06, y + s * 0.06 + depth * 4.5, s * 0.88, s * 0.88, s * 0.13);
+          roundRect(ctx, x + s * 0.07, y + s * 0.07 + depth * peek, s * 0.86, s * 0.86, s * 0.14);
           ctx.fill();
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+          ctx.stroke();
         }
         if (peeling && stack.length >= 2) {
           // the revealed layer under the curl
@@ -435,12 +476,12 @@ export class BoardView {
     ctx.translate(x + s / 2, y + s / 2);
     ctx.scale(scale, scale);
     ctx.translate(-s / 2, -s / 2);
-    if (l.kind === 'sticker') {
-      ctx.shadowColor = PAL.shadow;
-      ctx.shadowBlur = 4;
-      ctx.shadowOffsetY = 2;
-      ctx.drawImage(this.stickerImage(l, l.segments), 0, 0, s, s);
-    } else drawLayer(ctx, l, s);
+    ctx.fillStyle = 'rgba(62, 42, 28, 0.22)';
+    ctx.beginPath();
+    ctx.ellipse(s * 0.52, s * 0.9, s * 0.34, s * 0.06, 0, 0, Math.PI * 2);
+    ctx.fill();
+    if (l.kind === 'sticker') ctx.drawImage(this.stickerImage(l, l.segments), 0, 0, s, s);
+    else ctx.drawImage(this.decor(l.id, 'rub', (g, sz) => drawRubble(g, sz, l.id)), 0, 0, s, s);
     ctx.restore();
   }
 
@@ -476,32 +517,56 @@ export class BoardView {
     poly.forEach((pt, k) => (k ? ctx.lineTo(pt[0], pt[1]) : ctx.moveTo(pt[0], pt[1])));
     ctx.closePath();
     ctx.clip();
-    ctx.shadowColor = PAL.shadow;
-    ctx.shadowBlur = 4;
-    ctx.shadowOffsetY = 2;
+    ctx.fillStyle = 'rgba(62, 42, 28, 0.2)';
+    ctx.beginPath();
+    ctx.ellipse(s * 0.52, s * 0.9, s * 0.34, s * 0.06, 0, 0, Math.PI * 2);
+    ctx.fill();
     ctx.drawImage(this.stickerImage(st, st.segments), 0, 0, s, s);
     ctx.restore();
-    // shadow cast by the flap
+    const mid: [number, number] = [(P1[0] + P2[0]) / 2, (P1[1] + P2[1]) / 2];
+    const flap = () => {
+      ctx.beginPath();
+      ctx.moveTo(P1[0], P1[1]);
+      ctx.quadraticCurveTo((P1[0] + Cp[0]) / 2 + ux[0] * a * 0.14, (P1[1] + Cp[1]) / 2 + uy[1] * a * 0.04, Cp[0], Cp[1]);
+      ctx.quadraticCurveTo((P2[0] + Cp[0]) / 2 + ux[0] * a * 0.04, (P2[1] + Cp[1]) / 2 + uy[1] * a * 0.14, P2[0], P2[1]);
+      ctx.closePath();
+    };
+    // soft cast shadow of the rolled corner
     ctx.save();
-    ctx.shadowColor = 'rgba(60,40,30,0.35)';
-    ctx.shadowBlur = 10;
-    ctx.shadowOffsetX = ux[0] * 3;
-    ctx.shadowOffsetY = uy[1] * 3;
-    const g = ctx.createLinearGradient((P1[0] + P2[0]) / 2, (P1[1] + P2[1]) / 2, Cp[0], Cp[1]);
-    g.addColorStop(0, PAL.paperBack[1]);
-    g.addColorStop(0.55, PAL.paperBack[0]);
-    g.addColorStop(1, '#ffffff');
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.moveTo(P1[0], P1[1]);
-    ctx.quadraticCurveTo((P1[0] + Cp[0]) / 2 + ux[0] * a * 0.08, (P1[1] + Cp[1]) / 2, Cp[0], Cp[1]);
-    ctx.quadraticCurveTo((P2[0] + Cp[0]) / 2, (P2[1] + Cp[1]) / 2 + uy[1] * a * 0.08, P2[0], P2[1]);
-    ctx.closePath();
+    ctx.shadowColor = 'rgba(40, 28, 18, 0.45)';
+    ctx.shadowBlur = Math.max(6, s * 0.1);
+    ctx.shadowOffsetX = ux[0] * s * 0.04;
+    ctx.shadowOffsetY = uy[1] * s * 0.04;
+    ctx.fillStyle = 'rgba(40, 28, 18, 0.18)';
+    flap();
     ctx.fill();
     ctx.restore();
-    // crease highlight
-    ctx.strokeStyle = 'rgba(255,255,255,0.9)';
-    ctx.lineWidth = 1.5;
+    const g = ctx.createLinearGradient(mid[0], mid[1], Cp[0], Cp[1]);
+    g.addColorStop(0, PAL.paperBack[1]);
+    g.addColorStop(0.28, '#e4ebf2');
+    g.addColorStop(0.7, PAL.paperBack[0]);
+    g.addColorStop(1, '#ffffff');
+    ctx.fillStyle = g;
+    flap();
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+    ctx.lineWidth = Math.max(1, s * 0.02);
+    flap();
+    ctx.stroke();
+    // the roll itself: a cylinder of paper along the crease
+    ctx.lineCap = 'round';
+    const roll = ctx.createLinearGradient(P1[0], P1[1], P2[0], P2[1]);
+    roll.addColorStop(0, '#c5d0dc');
+    roll.addColorStop(0.45, '#ffffff');
+    roll.addColorStop(1, '#aeb9c8');
+    ctx.strokeStyle = roll;
+    ctx.lineWidth = Math.max(2, s * 0.07);
+    ctx.beginPath();
+    ctx.moveTo(P1[0], P1[1]);
+    ctx.lineTo(P2[0], P2[1]);
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,0.95)';
+    ctx.lineWidth = Math.max(1, s * 0.018);
     ctx.beginPath();
     ctx.moveTo(P1[0], P1[1]);
     ctx.lineTo(P2[0], P2[1]);
@@ -518,16 +583,16 @@ export class BoardView {
     const scale = h.dragging ? 1.14 : 1.08;
     ctx.save();
     ctx.translate(h.x, h.y + bob);
-    // ground shadow
-    ctx.fillStyle = 'rgba(60,40,30,0.18)';
+    ctx.fillStyle = 'rgba(62, 42, 28, 0.22)';
     ctx.beginPath();
-    ctx.ellipse(6, s * 0.5 + 8, s * 0.42, s * 0.12, 0, 0, Math.PI * 2);
+    ctx.ellipse(s * 0.08, s * 0.46, s * 0.38, s * 0.1, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.rotate(h.rotFx + (h.dragging ? 0.06 : 0));
     ctx.scale(scale * h.flipFx, scale);
-    ctx.shadowColor = 'rgba(60,40,30,0.35)';
-    ctx.shadowBlur = 16;
-    ctx.shadowOffsetY = 10;
+    ctx.shadowColor = 'rgba(62, 42, 28, 0.32)';
+    ctx.shadowBlur = Math.max(8, s * 0.12);
+    ctx.shadowOffsetY = s * 0.08;
+    ctx.shadowOffsetX = s * 0.02;
     ctx.drawImage(this.stickerImage(h.sticker, h.segments), -s / 2, -s / 2, s, s);
     ctx.restore();
   }
@@ -572,22 +637,35 @@ export class BoardView {
       const t = Math.max(0, Math.min(1, (el - r.delay) / 1.3));
       const d = r.total * easeInOut(t);
       if (r.type === 'pipe') {
-        // water flowing through: a bright stroke grows along the path
         ctx.save();
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
-        ctx.strokeStyle = 'rgba(125, 220, 255, 0.95)';
-        ctx.lineWidth = s * 0.14;
+        const path = () => {
+          ctx.beginPath();
+          r.pts.forEach((p, i) => (i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])));
+        };
+        ctx.strokeStyle = 'rgba(14, 126, 171, 0.35)';
+        ctx.lineWidth = s * 0.2;
         ctx.setLineDash([d, r.total + 10]);
-        ctx.beginPath();
-        r.pts.forEach((p, i) => (i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])));
+        path();
+        ctx.stroke();
+        ctx.strokeStyle = 'rgba(160, 230, 255, 0.95)';
+        ctx.lineWidth = s * 0.12;
+        path();
+        ctx.stroke();
+        ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+        ctx.lineWidth = s * 0.04;
+        path();
         ctx.stroke();
         ctx.setLineDash([]);
-        const [x, y, a] = pointAt(r, d);
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.arc(x + Math.cos(a) * 2, y + Math.sin(a) * 2, s * 0.05, 0, Math.PI * 2);
-        ctx.fill();
+        for (let i = 0; i < 3; i++) {
+          const [bx, by] = pointAt(r, Math.max(0, d - i * s * 0.28));
+          ctx.globalAlpha = 0.85 - i * 0.2;
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(bx, by, s * (0.03 + i * 0.008), 0, Math.PI * 2);
+          ctx.fill();
+        }
         ctx.restore();
         continue;
       }
@@ -618,55 +696,107 @@ function pointAt(r: { pts: [number, number][]; lens: number[] }, d: number): [nu
 }
 
 function drawCar(ctx: CanvasRenderingContext2D, s: number) {
-  const L = s * 0.36;
+  const L = s * 0.42;
   const Wd = s * 0.22;
-  ctx.fillStyle = 'rgba(0,0,0,0.2)';
-  roundRect(ctx, -L / 2 + 2, -Wd / 2 + 3, L, Wd, Wd * 0.35);
+  ctx.fillStyle = 'rgba(40, 28, 18, 0.28)';
+  ctx.beginPath();
+  ctx.ellipse(2, 4, L * 0.46, Wd * 0.55, 0, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = '#ff6b8b';
-  roundRect(ctx, -L / 2, -Wd / 2, L, Wd, Wd * 0.35);
+  ctx.fillStyle = '#2c2622';
+  for (const [wx, wy] of [
+    [-L * 0.28, -Wd * 0.55],
+    [L * 0.18, -Wd * 0.55],
+    [-L * 0.28, Wd * 0.55],
+    [L * 0.18, Wd * 0.55],
+  ] as const) {
+    ctx.beginPath();
+    ctx.ellipse(wx, wy, L * 0.09, Wd * 0.16, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  const body = ctx.createLinearGradient(0, -Wd, 0, Wd);
+  body.addColorStop(0, '#ff9aab');
+  body.addColorStop(1, '#e24d68');
+  ctx.fillStyle = body;
+  roundRect(ctx, -L / 2, -Wd / 2, L, Wd, Wd * 0.4);
   ctx.fill();
-  ctx.fillStyle = '#ffe1e8';
-  roundRect(ctx, -L * 0.12, -Wd * 0.36, L * 0.34, Wd * 0.72, Wd * 0.2);
+  ctx.strokeStyle = '#a8334c';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.fillStyle = '#d7f4ff';
+  roundRect(ctx, -L * 0.08, -Wd * 0.34, L * 0.32, Wd * 0.68, Wd * 0.2);
   ctx.fill();
-  ctx.fillStyle = '#fff6b0';
-  ctx.fillRect(L / 2 - 3, -Wd / 2 + 2, 3, 3);
-  ctx.fillRect(L / 2 - 3, Wd / 2 - 5, 3, 3);
+  ctx.fillStyle = 'rgba(255,255,255,0.65)';
+  ctx.fillRect(-L * 0.02, -Wd * 0.22, L * 0.06, Wd * 0.44);
+  ctx.fillStyle = '#fff3b0';
+  ctx.fillRect(L / 2 - s * 0.03, -Wd / 2 + 2, s * 0.035, s * 0.04);
+  ctx.fillRect(L / 2 - s * 0.03, Wd / 2 - s * 0.055, s * 0.035, s * 0.04);
 }
 
 function drawTram(ctx: CanvasRenderingContext2D, s: number) {
-  const L = s * 0.6;
-  const Wd = s * 0.22;
-  ctx.fillStyle = 'rgba(0,0,0,0.2)';
-  roundRect(ctx, -L / 2 + 2, -Wd / 2 + 3, L, Wd, Wd * 0.3);
+  const L = s * 0.62;
+  const Wd = s * 0.2;
+  ctx.fillStyle = 'rgba(40, 28, 18, 0.28)';
+  ctx.beginPath();
+  ctx.ellipse(2, 4, L * 0.46, Wd * 0.6, 0, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = '#a78bfa';
-  roundRect(ctx, -L / 2, -Wd / 2, L, Wd, Wd * 0.3);
+  ctx.fillStyle = '#2c2622';
+  for (const wx of [-L * 0.32, -L * 0.05, L * 0.22]) {
+    ctx.fillRect(wx, -Wd * 0.62, s * 0.04, s * 0.035);
+    ctx.fillRect(wx, Wd * 0.48, s * 0.04, s * 0.035);
+  }
+  const body = ctx.createLinearGradient(0, -Wd, 0, Wd);
+  body.addColorStop(0, '#3dbaa4');
+  body.addColorStop(1, '#1c7d6c');
+  ctx.fillStyle = body;
+  roundRect(ctx, -L / 2, -Wd / 2, L, Wd, Wd * 0.35);
   ctx.fill();
-  ctx.fillStyle = '#f3edff';
-  for (let i = 0; i < 4; i++) ctx.fillRect(-L / 2 + L * (0.12 + i * 0.2), -Wd * 0.28, L * 0.12, Wd * 0.56);
-  ctx.fillStyle = '#ffd166';
-  ctx.fillRect(L / 2 - 4, -2, 3, 4);
+  ctx.strokeStyle = '#145e52';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.fillStyle = '#e8b84a';
+  ctx.fillRect(-L / 2, -s * 0.012, L, s * 0.025);
+  ctx.fillStyle = '#fff6d8';
+  for (let i = 0; i < 4; i++) ctx.fillRect(-L / 2 + L * (0.1 + i * 0.2), -Wd * 0.28, L * 0.12, Wd * 0.56);
+  ctx.strokeStyle = '#145e52';
+  ctx.lineWidth = Math.max(1, s * 0.015);
+  ctx.beginPath();
+  ctx.moveTo(0, -Wd * 0.5);
+  ctx.lineTo(0, -Wd * 1.15);
+  ctx.moveTo(-L * 0.12, -Wd * 1.05);
+  ctx.lineTo(L * 0.12, -Wd * 1.05);
+  ctx.stroke();
+  ctx.fillStyle = '#fff3b0';
+  ctx.fillRect(L / 2 - s * 0.04, -s * 0.02, s * 0.03, s * 0.04);
 }
 
 function drawFinger(ctx: CanvasRenderingContext2D, s: number) {
-  // a simple friendly pointer hand made from rounded shapes
-  ctx.fillStyle = 'rgba(0,0,0,0.18)';
+  ctx.fillStyle = 'rgba(50, 32, 20, 0.22)';
   ctx.beginPath();
-  ctx.ellipse(s * 0.1, s * 0.75, s * 0.3, s * 0.1, 0, 0, Math.PI * 2);
+  ctx.ellipse(s * 0.08, s * 0.72, s * 0.28, s * 0.09, 0, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = '#ffffff';
-  ctx.strokeStyle = '#3b2f45';
-  ctx.lineWidth = 2;
-  roundRect(ctx, -s * 0.12, -s * 0.45, s * 0.24, s * 0.7, s * 0.12);
+  const skin = '#f6c7a8';
+  const line = '#6a4638';
+  ctx.fillStyle = skin;
+  ctx.strokeStyle = line;
+  ctx.lineWidth = 1.6;
+  ctx.lineJoin = 'round';
+  roundRect(ctx, -s * 0.1, -s * 0.48, s * 0.22, s * 0.58, s * 0.1);
   ctx.fill();
   ctx.stroke();
-  roundRect(ctx, -s * 0.18, -s * 0.02, s * 0.56, s * 0.55, s * 0.18);
+  ctx.fillStyle = '#ffe4d4';
+  roundRect(ctx, -s * 0.055, -s * 0.44, s * 0.13, s * 0.11, s * 0.05);
+  ctx.fill();
+  ctx.fillStyle = skin;
+  roundRect(ctx, -s * 0.16, 0, s * 0.48, s * 0.46, s * 0.16);
   ctx.fill();
   ctx.stroke();
-  ctx.fillStyle = 'rgba(255, 143, 171, 0.9)';
   ctx.beginPath();
-  ctx.arc(0, -s * 0.5, s * 0.14 + Math.sin(performance.now() / 120) * 2, 0, Math.PI * 2);
-  ctx.globalAlpha *= 0.5;
+  ctx.ellipse(s * 0.22, s * 0.12, s * 0.09, s * 0.13, 0.7, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = 'rgba(232, 90, 110, 0.55)';
+  ctx.beginPath();
+  ctx.arc(0, -s * 0.52, s * 0.12 + Math.sin(performance.now() / 140) * 1.4, 0, Math.PI * 2);
+  ctx.globalAlpha *= 0.7;
   ctx.fill();
 }

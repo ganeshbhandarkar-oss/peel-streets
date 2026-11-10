@@ -4,7 +4,7 @@
 
 A hybrid-casual mobile puzzle prototype that runs in the browser. The city is a grid of **sticker tiles**: roads, tram rails and water pipes. You **peel** a sticker off (its corner curls up under your finger), **rotate or flip** it, and **snap** it onto an empty lot. When every garage, tram depot and water tower connects to its matching house, tram stop or fountain, cars, trams and water run along the new route and a building in the district is restored.
 
-All art is drawn in code (Canvas 2D and inline SVG) and every sound is synthesised with WebAudio. There are no image, audio or font files, and no third-party assets or characters. Ads are **mocked**.
+All art is original and drawn in code (Canvas 2D and inline SVG): an "afternoon diorama" of chunky buildings, layered trees and die-cut paper stickers. See DESIGN.md. Every sound is synthesised with WebAudio. There are no image, audio or font files, and no third-party assets or characters. Ads are **mocked**.
 
 ![screens](docs/screenshots/01-tutorial.png)
 
@@ -60,8 +60,8 @@ src/
     solutions.json  optimal solutions written by the validator (used for hints / QA autoplay)
     index.ts      districts + level lookup
   render/
-    palette.ts    soft pastel palette
-    art.ts        procedural tile art: roads, rails, pipes, stickers, buildings, endpoints
+    palette.ts    diorama palette and the three district themes
+    art.ts        procedural tile art: roads, rails, pipes, stickers, buildings, trees, endpoints
     board.ts      canvas renderer: curl/peel, lift, snap bounce, particles, shake, vehicles, hints
   input/pointer.ts  touch + mouse state machine (press-curl-lift-drag-snap, tap flow)
   audio/sfx.ts    WebAudio synth SFX + navigator.vibrate haptics
@@ -75,6 +75,7 @@ scripts/
   e2e-smoke.mjs, screenshots.mjs
 tests/            vitest suites
 docs/screenshots/ 390x844 captures
+docs/screenshots/before-after/ pairs from the flat-pastel pass and the diorama pass
 ```
 
 ## Adding a level

@@ -13,9 +13,9 @@ import { $, h, ICON, starsHtml } from './dom';
 
 const FREE_HINTS = 1;
 
-const car = (x: number, c: string, rot: number) =>
-  `<g transform="translate(${x} 22) rotate(${rot})"><rect x="-17" y="-10" width="34" height="20" rx="7" fill="${c}"/><rect x="-6" y="-7" width="13" height="14" rx="3" fill="#fff" opacity="0.8"/><rect x="14" y="-8" width="3" height="4" fill="#fff6b0"/><rect x="14" y="4" width="3" height="4" fill="#fff6b0"/></g>`;
-const JAM_SVG = `<svg viewBox="0 0 170 44" width="170" height="44" style="margin:0 auto">${car(28, '#ff6b8b', -8)}${car(85, '#ffd166', 6)}${car(142, '#7dd3fc', -5)}<text x="56" y="14" font-size="16" font-weight="900" fill="#ff6b81">!</text><text x="113" y="14" font-size="16" font-weight="900" fill="#ff6b81">!</text></svg>`;
+const car = (x: number, body: string, roof: string, rot: number) =>
+  `<g transform="translate(${x} 24) rotate(${rot})"><ellipse cx="1" cy="7" rx="16" ry="6" fill="rgba(60,40,20,0.18)"/><circle cx="-9" cy="-8" r="2.5" fill="#2c2622"/><circle cx="7" cy="-8" r="2.5" fill="#2c2622"/><circle cx="-9" cy="8" r="2.5" fill="#2c2622"/><circle cx="7" cy="8" r="2.5" fill="#2c2622"/><rect x="-15" y="-8" width="30" height="16" rx="6" fill="${body}"/><rect x="-5" y="-5.5" width="11" height="11" rx="2.5" fill="${roof}"/><rect x="12" y="-6" width="3" height="3.2" rx="0.8" fill="#fff4c2"/><rect x="12" y="2.8" width="3" height="3.2" rx="0.8" fill="#fff4c2"/></g>`;
+const JAM_SVG = `<svg viewBox="0 0 180 48" width="180" height="48" style="margin:0 auto">${car(30, '#e24d68', '#ffd0d8', -8)}${car(90, '#e8b84a', '#fff6d4', 6)}${car(150, '#3dbaa4', '#e7fff8', -4)}<text x="58" y="14" font-size="15" font-weight="900" fill="#e23b55">!</text><text x="118" y="14" font-size="15" font-weight="900" fill="#e23b55">!</text></svg>`;
 const LEVEL_IDS = LEVELS.map((l) => l.id);
 
 export class App {
@@ -78,7 +78,7 @@ export class App {
       <header class="topbar">
         <button class="icon-btn" data-act="map" aria-label="Back to map">${ICON.back}</button>
         <div class="title"><div class="lvl-num" id="lvl-num"></div><div class="lvl-name" id="lvl-name"></div></div>
-        <div class="peels" id="peels" title="Peels left"><svg class="peel-ico" viewBox="0 0 24 24"><path d="M5 3h14a2 2 0 0 1 2 2v9l-7 7H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" fill="#fff" stroke="#d9c3a3" stroke-width="1.6"/><path d="M21 14h-5a2 2 0 0 0-2 2v5z" fill="#d9e1ec" stroke="#b9c4d4" stroke-width="1.2"/><path d="M3 11h11" stroke="#596079" stroke-width="4"/></svg><b id="peels-n">0</b></div>
+        <div class="peels" id="peels" title="Peels left"><svg class="peel-ico" viewBox="0 0 24 24"><path d="M4 4h14a2 2 0 0 1 2 2v8l-6 6H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" fill="#fffaf3" stroke="#e4d3bf" stroke-width="1.4"/><path d="M20 14h-5a2 2 0 0 0-2 2v5" fill="#d5e0ea" stroke="#b7c4d2" stroke-width="1"/><path d="M3 12h12" stroke="#3a4154" stroke-width="3.2" stroke-linecap="round"/><path d="M5 12h8" stroke="#f0c84a" stroke-width="1" stroke-dasharray="1.6 1.4" stroke-linecap="round"/></svg><b id="peels-n">0</b></div>
       </header>
       <div class="tip hidden" id="tip"></div>
       <div class="board-wrap"><canvas id="board"></canvas><div class="toast" id="toast"></div></div>
@@ -239,7 +239,7 @@ export class App {
             ${open ? `<b>${l.id}</b>` : ICON.lock}<span class="mini-stars">${starsHtml(st)}</span></button>`;
         })
         .join('');
-      return `<article class="district ${locked ? 'locked' : ''} ${done === lvls.length ? 'complete' : ''}">
+      return `<article class="district d-${d.id} ${locked ? 'locked' : ''} ${done === lvls.length ? 'complete' : ''}">
         <div class="d-head"><div><h2>${d.name}</h2><p>${d.blurb}</p></div><div class="d-prog">${done}/${lvls.length}<small>restored</small></div></div>
         ${districtSkyline(d, lvls, this.progress.stars)}
         <div class="nodes">${nodes}</div>
@@ -267,6 +267,7 @@ export class App {
     $('#screen-game').classList.remove('hidden');
     this.view.resetFx();
     this.input.reset();
+    this.view.setScene(lv.id, lv.district);
     this.view.setBoard(this.session.board);
     this.view.resize();
     this.view.start();

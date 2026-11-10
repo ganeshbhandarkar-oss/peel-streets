@@ -2,6 +2,15 @@
 
 **Pitch:** "Peel it, flip it, stick it, and the city moves." It's a hybrid-casual puzzle built around one tactile, instantly readable mechanic: peeling a sticker off a city map and slapping it back down somewhere else.
 
+## Art direction
+
+**Afternoon Diorama.** One tabletop city, seen from a high three-quarter angle in warm late-day light. Shapes are chunky, like painted wood and die-cut paper: a soft limited palette, gentle gradients, contact shadows, a thin warm outline and a light rim. Every building, tree, sticker and icon is drawn in code. Nothing is licensed, traced, or pulled from a third-party pack.
+
+- **One path language everywhere.** Roads are dark asphalt with a yellow dash, rails are a tan bed with dark ties and twin steel lines, pipes are a cyan tube with a white highlight and a dark flange. Those three differ in lightness and pattern, not just hue, so a connection stays readable in grayscale. A small chevron marks which side of a garage, stop or fountain is the opening.
+- **Districts change the city, not the puzzle.** Harbor Lane is sand, terracotta and sea-glass. Old Market is plaster, brick and striped awnings. Skyline Park is fogged glass, slate and deeper park green. Blocks are houses, shops, towers, factories and stations, or groves of layered trees (oak, pine, palm, blossom).
+- **Motion is small.** Tree crowns sway, a few windows twinkle, factory and chimney stacks let off steam, ponds ripple. Sprites are pre-rendered to offscreen canvases at the device pixel ratio (capped at 3); the idle bits are a handful of shapes drawn on top.
+- **The peel is the hero.** A sticker is warm paper. Pulling a corner rolls it back: cool underside, a cylindrical crease, a white rim and a soft cast shadow on the piece underneath.
+
 ## Core loop (10–60 s per level)
 1. **Read** the board: which source needs which destination, and where the gaps are.
 2. **Peel** a sticker: a satisfying curl, a rip sound, and you see what's hidden underneath.
